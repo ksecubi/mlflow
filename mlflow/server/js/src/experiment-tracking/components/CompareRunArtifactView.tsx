@@ -21,7 +21,10 @@ export const CompareRunArtifactView = ({
   const [artifactPath, setArtifactPath] = useState<string | undefined>();
 
   const { artifactsKeyedByRun } = useRunsArtifacts(runUuids);
+  console.log("artifactsKeyedByRun", artifactsKeyedByRun);
+
   const commonArtifacts = getCommonArtifacts(artifactsKeyedByRun);
+  console.log("commonArtifacts", commonArtifacts);
 
   if (commonArtifacts.length === 0) {
     return (
@@ -45,7 +48,7 @@ export const CompareRunArtifactView = ({
         css={{
           backgroundColor: theme.colors.backgroundPrimary,
           color: theme.colors.textPrimary,
-          flex: '1 1 0%',
+          flex: '0 0 300px', // Fixed width
           whiteSpace: 'nowrap',
           border: `1px solid ${theme.colors.grey300}`,
           overflowY: 'auto',
@@ -62,6 +65,8 @@ export const CompareRunArtifactView = ({
       </div>
       <div
         css={{
+          flex: 1,
+          minWidth: 0,
           border: `1px solid ${theme.colors.grey300}`,
           borderLeft: 'none',
           display: 'flex',

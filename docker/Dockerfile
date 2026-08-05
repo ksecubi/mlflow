@@ -1,3 +1,9 @@
-FROM python:3.10-slim-bullseye@sha256:f1fb49e4d5501ac93d0ca519fb7ee6250842245aba8612926a46a0832a1ed089
-ARG VERSION
-RUN pip install --no-cache mlflow==$VERSION
+FROM python:3.10-slim-bullseye
+
+WORKDIR /mlflow
+
+COPY . .
+
+RUN pip install --upgrade pip
+RUN pip install -e '.[extras,db,auth]'
+RUN pip install psycopg2-binary

@@ -25,7 +25,7 @@ const MLFLOW_FILE_LANGUAGES = {
   jsonl: 'json',
 };
 
-export const IMAGE_EXTENSIONS = new Set(['jpg', 'bmp', 'jpeg', 'png', 'gif', 'svg']);
+export const IMAGE_EXTENSIONS = new Set(['jpg', 'bmp', 'jpeg', 'png', 'gif', 'svg', 'webp']);
 export const TEXT_EXTENSIONS = new Set([
   'txt',
   'log',
