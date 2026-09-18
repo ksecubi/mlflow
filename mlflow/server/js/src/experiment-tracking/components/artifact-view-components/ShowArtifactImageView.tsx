@@ -7,11 +7,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { LegacySkeleton } from '@databricks/design-system';
-import {
-  getArtifactBytesContent,
-  getArtifactLocationUrl,
-  getLoggedModelArtifactLocationUrl,
-} from '../../../common/utils/ArtifactUtils';
+import { getArtifactBytesContent } from '../../../common/utils/ArtifactUtils';
 import { ImagePreviewGroup, Image } from '../../../shared/building_blocks/Image';
 import type { LoggedModelArtifactViewerProps } from './ArtifactViewComponents.types';
 import { fetchArtifactUnified } from './utils/fetchArtifactUnified';
@@ -19,6 +15,7 @@ import { fetchArtifactUnified } from './utils/fetchArtifactUnified';
 type Props = {
   runUuid: string;
   path: string;
+  artifactRootUri?: string;
   getArtifact?: (...args: any[]) => any;
 } & LoggedModelArtifactViewerProps;
 
@@ -26,6 +23,7 @@ const ShowArtifactImageView = ({
   experimentId,
   runUuid,
   path,
+  artifactRootUri,
   getArtifact = getArtifactBytesContent,
   isLoggedModelsMode,
   loggedModelId,
@@ -48,6 +46,7 @@ const ShowArtifactImageView = ({
         loggedModelId,
         experimentId,
         entityTags,
+        artifactRootUri,
       },
       getArtifact,
     ).then((result: any) => {
@@ -56,7 +55,7 @@ const ShowArtifactImageView = ({
       setImageUrl(URL.createObjectURL(new Blob([new Uint8Array(result)], options)));
       setIsLoading(false);
     });
-  }, [runUuid, path, getArtifact, isLoggedModelsMode, loggedModelId, experimentId, entityTags]);
+  }, [runUuid, path, artifactRootUri, getArtifact, isLoggedModelsMode, loggedModelId, experimentId, entityTags]);
 
   return (
     imageUrl && (

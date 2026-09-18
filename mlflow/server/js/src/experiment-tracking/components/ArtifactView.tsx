@@ -12,6 +12,11 @@ import { injectIntl, FormattedMessage, useIntl } from 'react-intl';
 import { Link } from '../../common/utils/RoutingUtils';
 import { getBasename } from '../../common/utils/FileUtils';
 import { ArtifactNode as ArtifactUtils, ArtifactNode } from '../utils/ArtifactUtils';
+import {
+  canFallBackFromPresignedDownloadError,
+  getProxiedArtifactDownloadPath,
+  shouldTryRunScopedPresignedDownload,
+} from '../../common/utils/ArtifactUtils';
 // @ts-expect-error TS(7016): Could not find a declaration file for module 'byte... Remove this comment to see the full error message
 import bytes from 'bytes';
 import { RegisterModel } from '../../model-registry/components/RegisterModel';
@@ -47,7 +52,6 @@ import {
   getArtifactLocationUrl,
   getLoggedModelArtifactLocationUrl,
 } from '../../common/utils/ArtifactUtils';
-import { ErrorWrapper } from '../../common/utils/ErrorWrapper';
 import { ArtifactViewTree } from './ArtifactViewTree';
 import { useDesignSystemTheme } from '@databricks/design-system';
 import { Button } from '@databricks/design-system';
@@ -62,54 +66,6 @@ import type { KeyValueEntity } from '../../common/types';
 import { getMultipartDownloadsEnabledSync } from '../hooks/useServerInfo';
 
 const { Text } = Typography;
-const MLFLOW_ARTIFACTS_ROUTE_ANCHORS = [
-  'api/2.0/mlflow-artifacts/artifacts/',
-  'ajax-api/2.0/mlflow-artifacts/artifacts/',
-];
-const PRESIGNED_DOWNLOAD_FALLBACK_STATUSES = [400, 404, 501, 503];
-
-const joinArtifactPaths = (rootPath: string, artifactPath: string) =>
-  [rootPath.replace(/^\/+|\/+$/g, ''), artifactPath.replace(/^\/+/, '')].filter(Boolean).join('/');
-
-const getDecodedPathname = (url: URL) => decodeURIComponent(url.pathname);
-
-const getProxiedArtifactDownloadPath = (artifactRootUri?: string, artifactPath?: string) => {
-  if (!artifactRootUri || !artifactPath) {
-    return undefined;
-  }
-  try {
-    const parsedArtifactRootUri = new URL(artifactRootUri);
-    if (parsedArtifactRootUri.protocol === 'mlflow-artifacts:') {
-      return joinArtifactPaths(getDecodedPathname(parsedArtifactRootUri), artifactPath);
-    }
-    if (parsedArtifactRootUri.protocol === 'http:' || parsedArtifactRootUri.protocol === 'https:') {
-      const rootPath = getDecodedPathname(parsedArtifactRootUri).replace(/^\/+/, '');
-      const routeAnchor = MLFLOW_ARTIFACTS_ROUTE_ANCHORS.find((anchor) => rootPath.includes(anchor));
-      if (routeAnchor) {
-        const routeAnchorIndex = rootPath.indexOf(routeAnchor);
-        return joinArtifactPaths(rootPath.slice(routeAnchorIndex + routeAnchor.length), artifactPath);
-      }
-    }
-  } catch {
-    return undefined;
-  }
-  return undefined;
-};
-
-const shouldTryRunScopedPresignedDownload = (artifactRootUri?: string) => {
-  if (!artifactRootUri) {
-    return true;
-  }
-  try {
-    const { protocol } = new URL(artifactRootUri);
-    return protocol !== 'mlflow-artifacts:' && protocol !== 'http:' && protocol !== 'https:';
-  } catch {
-    return true;
-  }
-};
-
-const canFallBackFromPresignedDownloadError = (error: unknown) =>
-  error instanceof ErrorWrapper && PRESIGNED_DOWNLOAD_FALLBACK_STATUSES.includes(error.getStatus());
 
 type ArtifactViewImplProps = DesignSystemHocProps & {
   experimentId: string;

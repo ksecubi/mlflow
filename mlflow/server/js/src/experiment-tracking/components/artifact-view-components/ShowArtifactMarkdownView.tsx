@@ -24,6 +24,7 @@ interface ShowArtifactMarkdownViewProps extends Omit<LoggedModelArtifactViewerPr
   runUuid: string;
   path: string;
   size?: number;
+  artifactRootUri?: string;
 }
 
 const ShowArtifactMarkdownView = ({
@@ -32,6 +33,7 @@ const ShowArtifactMarkdownView = ({
   isLoggedModelsMode,
   loggedModelId,
   size,
+  artifactRootUri,
 }: ShowArtifactMarkdownViewProps) => {
   const isLargeFile = (size || 0) > LARGE_MARKDOWN_SIZE;
   const { theme } = useDesignSystemTheme();
@@ -55,6 +57,7 @@ const ShowArtifactMarkdownView = ({
         path,
         isLoggedModelsMode,
         loggedModelId,
+        artifactRootUri,
       },
       getArtifactContent,
     )
@@ -72,7 +75,7 @@ const ShowArtifactMarkdownView = ({
     return () => {
       cancelled = true;
     };
-  }, [runUuid, path, isLoggedModelsMode, loggedModelId]);
+  }, [runUuid, path, isLoggedModelsMode, loggedModelId, artifactRootUri]);
 
   if (loading) {
     return <ArtifactViewSkeleton className="artifact-markdown-view-loading" />;

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import WaveSurfer from 'wavesurfer.js';
-import { getArtifactBlob, getArtifactLocationUrl } from '../../../common/utils/ArtifactUtils';
+import { getArtifactBlob, resolveArtifactContentUrl } from '../../../common/utils/ArtifactUtils';
 import { ArtifactViewErrorState } from './ArtifactViewErrorState';
 import { ArtifactViewSkeleton } from './ArtifactViewSkeleton';
 
@@ -13,10 +13,16 @@ const waveSurferStyling = {
 export type ShowArtifactAudioViewProps = {
   runUuid: string;
   path: string;
+  artifactRootUri?: string;
   getArtifact?: (...args: any[]) => any;
 };
 
-const ShowArtifactAudioView = ({ runUuid, path, getArtifact = getArtifactBlob }: ShowArtifactAudioViewProps) => {
+const ShowArtifactAudioView = ({
+  runUuid,
+  path,
+  artifactRootUri,
+  getArtifact = getArtifactBlob,
+}: ShowArtifactAudioViewProps) => {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const wsRef = useRef<WaveSurfer | null>(null);
 
@@ -32,8 +38,8 @@ const ShowArtifactAudioView = ({ runUuid, path, getArtifact = getArtifactBlob }:
     let blobUrl: string | undefined;
     let cancelled = false;
 
-    const artifactUrl = getArtifactLocationUrl(path, runUuid);
-    getArtifact(artifactUrl)
+    resolveArtifactContentUrl(runUuid, path, artifactRootUri)
+      .then((artifactUrl) => getArtifact(artifactUrl))
       .then((blob: Blob) => {
         if (cancelled || !containerRef.current) return;
 
@@ -80,7 +86,7 @@ const ShowArtifactAudioView = ({ runUuid, path, getArtifact = getArtifactBlob }:
         URL.revokeObjectURL(blobUrl);
       }
     };
-  }, [containerRef, path, runUuid, getArtifact]);
+  }, [containerRef, path, runUuid, artifactRootUri, getArtifact]);
 
   const showLoading = loading && !error;
 

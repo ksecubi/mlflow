@@ -2,20 +2,22 @@ import React, { useEffect, useState } from 'react';
 import { LegacySkeleton } from '@databricks/design-system';
 import {
   getArtifactBlob,
-  getArtifactLocationUrl,
   getLoggedModelArtifactLocationUrl,
+  resolveArtifactContentUrl,
 } from '../../../common/utils/ArtifactUtils';
 import type { LoggedModelArtifactViewerProps } from './ArtifactViewComponents.types';
 
 type Props = {
   runUuid: string;
   path: string;
+  artifactRootUri?: string;
   getArtifact?: (...args: any[]) => any;
 } & LoggedModelArtifactViewerProps;
 
 const ShowArtifactVideoView = ({
   runUuid,
   path,
+  artifactRootUri,
   getArtifact = getArtifactBlob,
   isLoggedModelsMode,
   loggedModelId,
@@ -25,22 +27,27 @@ const ShowArtifactVideoView = ({
 
   useEffect(() => {
     let objUrl: string | undefined;
+    let cancelled = false;
 
-    const artifactUrl =
+    const artifactUrlPromise =
       isLoggedModelsMode && loggedModelId
-        ? getLoggedModelArtifactLocationUrl(path, loggedModelId)
-        : getArtifactLocationUrl(path, runUuid);
+        ? Promise.resolve(getLoggedModelArtifactLocationUrl(path, loggedModelId))
+        : resolveArtifactContentUrl(runUuid, path, artifactRootUri);
 
-    getArtifact(artifactUrl).then((blob: Blob) => {
-      objUrl = URL.createObjectURL(blob);
-      setVideoUrl(objUrl);
-      setLoading(false);
-    });
+    artifactUrlPromise
+      .then((artifactUrl) => getArtifact(artifactUrl))
+      .then((blob: Blob) => {
+        if (cancelled) return;
+        objUrl = URL.createObjectURL(blob);
+        setVideoUrl(objUrl);
+        setLoading(false);
+      });
 
     return () => {
+      cancelled = true;
       if (objUrl) URL.revokeObjectURL(objUrl);
     };
-  }, [runUuid, path, isLoggedModelsMode, loggedModelId, getArtifact]);
+  }, [runUuid, path, artifactRootUri, isLoggedModelsMode, loggedModelId, getArtifact]);
 
   const classNames = {
     videoOuterContainer: {

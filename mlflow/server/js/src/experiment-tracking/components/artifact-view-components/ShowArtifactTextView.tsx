@@ -24,6 +24,7 @@ type Props = DesignSystemHocProps & {
   runUuid: string;
   path: string;
   size?: number;
+  artifactRootUri?: string;
   getArtifact?: (...args: any[]) => any;
 } & LoggedModelArtifactViewerProps;
 
@@ -113,10 +114,13 @@ class ShowArtifactTextView extends Component<Props, State> {
   /** Fetches artifacts and updates component state with the result */
   fetchArtifacts() {
     this.setState({ loading: true });
-    const { isLoggedModelsMode, loggedModelId, path, runUuid, experimentId, entityTags } = this.props;
+    const { isLoggedModelsMode, loggedModelId, path, runUuid, experimentId, entityTags, artifactRootUri } = this.props;
 
     this.props
-      .getArtifact?.({ isLoggedModelsMode, loggedModelId, path, runUuid, experimentId, entityTags }, getArtifactContent)
+      .getArtifact?.(
+        { isLoggedModelsMode, loggedModelId, path, runUuid, experimentId, entityTags, artifactRootUri },
+        getArtifactContent,
+      )
       .then((text: string) => {
         this.setState({ text: text, loading: false });
       })
